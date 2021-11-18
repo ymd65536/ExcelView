@@ -1,0 +1,52 @@
+@page "/"
+@using ClosedXML.Excel
+@using System.IO
+
+<h1>ExcelのWorkSheetを表示</h1>
+<p>@InputValue</p>
+<input type="text" @bind="InputValue" />
+<button class="btn btn-primary" @onclick="ShowBookName">test</button>
+
+@if (ImportWb == null)
+{
+    <p><em>Excelブックが指定されていません。 </em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>SheetName</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var SheetName in ImportWb.Worksheets)
+            {
+                <tr>
+                    <td>@SheetName.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>Welcome to your new app.</p>
+
+@code {
+    private string ImportFileName;
+    private string InputValue;
+    private XLWorkbook ImportWb;
+    //private IXLWorksheet ImportWs;
+    private void ShowBookName()
+    {
+        ImportFileName = Path.Combine(InputValue);
+        if (File.Exists(ImportFileName))
+        {
+            ImportWb = new(ImportFileName);
+        }
+        else
+        {
+            InputValue = "ファイルパスが不正です。";
+        }
+    }
+}
