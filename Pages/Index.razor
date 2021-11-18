@@ -3,13 +3,14 @@
 @using System.IO
 
 <h1>ExcelのWorkSheetを表示</h1>
-<p>@InputValue</p>
 <input type="text" @bind="InputValue" />
+
 <button class="btn btn-primary" @onclick="ShowBookName">test</button>
+<p>@ResultMessage</p>
 
 @if (ImportWb == null)
 {
-    <p><em>Excelブックが指定されていません。 </em></p>
+    <p><em>@FileLoading </em></p>
 }
 else
 {
@@ -35,18 +36,40 @@ else
 @code {
     private string ImportFileName;
     private string InputValue;
+    private string ResultMessage;
+    private string FileLoading;
     private XLWorkbook ImportWb;
-    //private IXLWorksheet ImportWs;
+
     private void ShowBookName()
     {
-        ImportFileName = Path.Combine(InputValue);
-        if (File.Exists(ImportFileName))
+        if (InputValue is null)
         {
-            ImportWb = new(ImportFileName);
+            ResultMessage = "ファイルパスが入力されていません。";
         }
         else
         {
-            InputValue = "ファイルパスが不正です。";
+            InputValue = InputValue.Trim(new char[] { '"' });
+            ImportFileName = Path.Combine(InputValue);
+            if (File.Exists(ImportFileName))
+            {
+                FileLoading = "Loading";
+                try
+                {
+                    ImportWb = new(ImportFileName);
+                    ResultMessage = "ファイルを開きました。";
+                }
+                catch (System.Exception)
+                {
+                    ResultMessage = "Excelファイルを指定してください。";
+                    FileLoading = "Error";
+                }
+            }
+            else
+            {
+                ResultMessage = "ファイルパスが不正です。";
+                FileLoading = "Error";
+            }
+
         }
     }
 }
