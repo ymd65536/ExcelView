@@ -1,2 +1,3 @@
 # ExcelView
-BlazorServer で Excelを開く
+
+BlazorServer で Excel を開く
