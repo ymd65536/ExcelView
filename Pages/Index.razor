@@ -2,11 +2,26 @@
 @using ClosedXML.Excel
 @using System.IO
 
-<h1>ExcelのWorkSheetを表示</h1>
-<input type="text" @bind="InputValue" />
+<div>
+    <label>ファイルパス</label>
+    <input type="text" @bind="FilePath" />
+    <button @onclick="SetWorkSheetName">Excelを開く</button>
+</div>
+<div>
+    <label>ワークシート名</label>
+    <input type="text" @bind="WorkSheetName" />
+</div>
 
-<button class="btn btn-primary" @onclick="ShowBookName">test</button>
-<p>@ResultMessage</p>
+<div>
+    <label>ユーザID</label>
+    <input type="text" @bind="UserNo" />
+</div>
+
+<button class="btn btn-primary" @onclick="ShowUserInfo">ユーザ検索</button>
+
+<div>
+    <p>@ResultMessage</p>
+</div>
 
 @if (ImportWb == null)
 {
@@ -14,42 +29,57 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>SheetName</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var SheetName in ImportWb.Worksheets)
-            {
-                <tr>
-                    <td>@SheetName.Name</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @if (!(DataBody == null))
+    {
+        var Header = new List<string>();
+        @for (int rng_i = 1; rng_i < 36; rng_i++)
+        {
+            Header.Add(ImportWb.Worksheet(WorkSheetName).Cell(2, rng_i).Value.ToString());
+        }
+        <p>@DataBody[1]</p>
+        <table class="table">
+            <th>項目</th>
+            <th>入力</th>
+            <tbody>
+                @for (int i = 1; i < Header.Count; i++)
+                {
+                    <tr>
+                        <td>@Header[i]</td>
+                        <td>@DataBody[i]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
+<button class="btn btn-primary" @onclick="ChangeValue">変更</button>
+
+<hr />
 <p>Welcome to your new app.</p>
 
 @code {
     private string ImportFileName;
-    private string InputValue;
+    private string FilePath;
     private string ResultMessage;
     private string FileLoading;
     private XLWorkbook ImportWb;
-
-    private void ShowBookName()
+    private string WorkSheetName;
+    private string UserName;
+    private string UserNo;
+    private string cValue;
+    private int cCnt;
+    private List<string> DataBody;
+    private void SetWorkSheetName()
     {
-        if (InputValue is null)
+        if (FilePath is null)
         {
             ResultMessage = "ファイルパスが入力されていません。";
         }
         else
         {
-            InputValue = InputValue.Trim(new char[] { '"' });
-            ImportFileName = Path.Combine(InputValue);
+            FilePath = FilePath.Trim(new char[] { '"' });
+            ImportFileName = Path.Combine(FilePath);
             if (File.Exists(ImportFileName))
             {
                 FileLoading = "Loading";
@@ -62,14 +92,57 @@ else
                 {
                     ResultMessage = "Excelファイルを指定してください。";
                     FileLoading = "Error";
+                    return;
                 }
+                WorkSheetName = ImportWb.Worksheet(1).Name;
             }
             else
             {
                 ResultMessage = "ファイルパスが不正です。";
                 FileLoading = "Error";
             }
+        }
+    }
+    private void ShowUserInfo()
+    {
+        // ユーザ番号を取得
+        if (UserNo is null)
+        {
+            ResultMessage = "ユーザ名が入力されていません。";
+        }
+        else
+        {
+            DataBody = new List<string>();
+            // 番号が記載されているところから取得
+            for (int cnt_i = 3; ; cnt_i++)
+            {
+                cValue = ImportWb.Worksheet(WorkSheetName).Cell(cnt_i, 1).Value.ToString();
+                if (cValue == UserNo)
+                {
+                    cCnt = cCnt + cnt_i;
+                    UserName = ImportWb.Worksheet(WorkSheetName).Cell(cCnt, 3).Value.ToString();
+                    for (int cnt_j = 1; cnt_j < 36; cnt_j++)
+                    {
+                        DataBody.Add(ImportWb.Worksheet(WorkSheetName).Cell(cCnt, cnt_j).Value.ToString());
+                    }
+                    break;
+                }
+                if (cnt_i > 120)
+                {
+                    UserName = "結果なし";
+                    DataBody = null;
+                    break;
+                }
+            }
+        }
+    }
+    private void ChangeValue()
+    {
+        // 書き換える
+        for (int cnt_j = 1; cnt_j < DataBody.Count; cnt_j++)
+        {
 
         }
     }
+
 }
